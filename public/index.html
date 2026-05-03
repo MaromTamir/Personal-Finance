@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Personal Finance</title>
+  <link rel="stylesheet" href="/css/styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.plaid.com/link/v2/stable/link-initialize.js"></script>
+</head>
+<body>
+<div class="layout">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon">&#36;</div>
+      <span>Finance</span>
+    </div>
+    <nav class="sidebar-nav">
+      <a class="nav-link active" data-page="dashboard">
+        <span class="nav-icon">&#9632;</span>Dashboard
+      </a>
+      <a class="nav-link" data-page="accounts">
+        <span class="nav-icon">&#9650;</span>Accounts
+      </a>
+      <a class="nav-link" data-page="transactions">
+        <span class="nav-icon">&#8644;</span>Transactions
+      </a>
+      <a class="nav-link" data-page="investments">
+        <span class="nav-icon">&#9650;</span>Investments
+      </a>
+      <a class="nav-link" data-page="debts">
+        <span class="nav-icon">&#9679;</span>Debts
+      </a>
+      <a class="nav-link" data-page="settings">
+        <span class="nav-icon">&#9881;</span>Settings
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <button class="btn-logout" onclick="logout()">&#8594; Sign Out</button>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main">
+
+    <!-- Dashboard Page -->
+    <div id="page-dashboard" class="page">
+      <header class="page-header">
+        <div>
+          <h1>Dashboard</h1>
+          <p class="page-subtitle" id="last-updated"></p>
+        </div>
+        <button class="btn btn-primary" id="sync-btn" onclick="syncAll()">Sync All</button>
+      </header>
+
+      <div class="metric-grid" id="metric-cards">
+        <div class="metric-card net-worth">
+          <div class="metric-label">Net Worth</div>
+          <div class="metric-value" id="m-networth">—</div>
+          <div class="metric-sub" id="m-networth-change"></div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Total Assets</div>
+          <div class="metric-value green" id="m-assets">—</div>
+          <div class="metric-sub">Cash + Investments</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Total Liabilities</div>
+          <div class="metric-value red" id="m-liabilities">—</div>
+          <div class="metric-sub">Loans + Credit Cards</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Monthly Spending</div>
+          <div class="metric-value" id="m-spending">—</div>
+          <div class="metric-sub">Last 30 days</div>
+        </div>
+      </div>
+
+      <div class="chart-row">
+        <div class="card chart-card wide">
+          <div class="card-header">Net Worth Over Time</div>
+          <div class="chart-wrap"><canvas id="networth-chart"></canvas></div>
+        </div>
+        <div class="card chart-card">
+          <div class="card-header">Spending by Category</div>
+          <div class="chart-wrap"><canvas id="spending-chart"></canvas></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">Recent Transactions</div>
+        <div id="recent-txns"></div>
+      </div>
+    </div>
+
+    <!-- Accounts Page -->
+    <div id="page-accounts" class="page hidden">
+      <header class="page-header">
+        <div><h1>Accounts</h1></div>
+        <button class="btn btn-primary" onclick="openPlaidLink()">+ Connect Account</button>
+      </header>
+      <div id="accounts-content"></div>
+    </div>
+
+    <!-- Transactions Page -->
+    <div id="page-transactions" class="page hidden">
+      <header class="page-header">
+        <div><h1>Transactions</h1></div>
+      </header>
+      <div class="card">
+        <div class="filters">
+          <input type="search" id="txn-search" placeholder="Search transactions..." oninput="loadTransactions()">
+          <select id="txn-category" onchange="loadTransactions()">
+            <option value="">All Categories</option>
+          </select>
+          <input type="date" id="txn-start" onchange="loadTransactions()">
+          <input type="date" id="txn-end" onchange="loadTransactions()">
+        </div>
+        <div id="txn-list"></div>
+        <div class="pagination" id="txn-pagination"></div>
+      </div>
+    </div>
+
+    <!-- Investments Page -->
+    <div id="page-investments" class="page hidden">
+      <header class="page-header">
+        <div><h1>Investments</h1></div>
+      </header>
+      <div class="metric-grid" id="invest-metrics"></div>
+      <div class="chart-row">
+        <div class="card chart-card">
+          <div class="card-header">Portfolio Allocation</div>
+          <div class="chart-wrap"><canvas id="allocation-chart"></canvas></div>
+        </div>
+        <div class="card chart-card wide">
+          <div class="card-header">Holdings</div>
+          <div id="holdings-table"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Debts Page -->
+    <div id="page-debts" class="page hidden">
+      <header class="page-header">
+        <div><h1>Debts &amp; Liabilities</h1></div>
+      </header>
+      <div id="debts-content"></div>
+    </div>
+
+    <!-- Settings Page -->
+    <div id="page-settings" class="page hidden">
+      <header class="page-header">
+        <div><h1>Settings</h1></div>
+        <button class="btn btn-primary" onclick="openPlaidLink()">+ Connect Account</button>
+      </header>
+      <div class="card">
+        <div class="card-header">Connected Institutions</div>
+        <div id="institutions-list"></div>
+      </div>
+      <div class="card">
+        <div class="card-header">Change Password</div>
+        <div class="info-box">
+          <div class="form-error" id="pw-error"></div>
+          <div id="pw-success" style="background:#f0fdf4;border:1px solid #bbf7d0;color:#166534;border-radius:8px;padding:10px 14px;font-size:13.5px;margin-bottom:16px;display:none">Password updated.</div>
+          <form onsubmit="changePassword(event)" style="max-width:360px">
+            <div class="form-group">
+              <label class="form-label">Current Password</label>
+              <input type="password" id="cp-current" class="form-input" autocomplete="current-password" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">New Password</label>
+              <input type="password" id="cp-new" class="form-input" minlength="8" autocomplete="new-password" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Confirm New Password</label>
+              <input type="password" id="cp-confirm" class="form-input" autocomplete="new-password" required>
+            </div>
+            <button type="submit" class="btn btn-primary" id="cp-btn">Update Password</button>
+          </form>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header">Plaid Sandbox Test Credentials</div>
+        <div class="info-box">
+          <p>When connecting an account in sandbox mode, use these test credentials:</p>
+          <ul>
+            <li><strong>Username:</strong> user_good</li>
+            <li><strong>Password:</strong> pass_good</li>
+            <li><strong>Phone/OTP:</strong> (any code works)</li>
+          </ul>
+          <p>Try institutions like <em>Plaid Bank</em>, <em>Tartan Bank</em>, or <em>Chase</em> for investment/loan data.</p>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- Toast -->
+<div id="toast" class="toast hidden"></div>
+
+<script src="/js/app.js"></script>
+</body>
+</html>

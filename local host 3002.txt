@@ -1,0 +1,48 @@
+local host 3002
+Diablo23
+
+ PM2 is running and saved. To also auto-start on Windows login, run: ! pm2 startup
+
+  ---
+  Your checklist before connecting real accounts
+
+  One thing you must do:
+  - Replace PLAID_SECRET in .env with your Development secret from the Plaid dashboard, then run ! pm2 restart personal-finance
+
+  What Plaid can and cannot do with your real accounts:
+  - Read only — Plaid cannot move money, make payments, or change anything
+  - Plaid is used by Venmo, Robinhood, Coinbase — it's an industry-standard financial data API
+  - Your bank credentials never touch this app — they go directly to Plaid's servers
+
+  Your data on this machine:
+  - Financial data stored in C:\Users\marom\personal-finance\data\finance.db
+  - Bank access tokens inside that file are AES-256-GCM encrypted
+  - The decryption key lives in .env — keep that file private
+
+  PM2 commands you'll use:
+  pm2 restart personal-finance   ← after editing .env
+  pm2 logs personal-finance      ← view server logs
+  pm2 stop personal-finance      ← shut it down
+
+-----------------------------------------------------------------------------------------------------------
+● Yes — https://192.168.1.243:3443 works on any device connected to the same WiFi router: other PCs, tablets, anything.
+
+  The only difference from the iPhone is how you bypass the certificate warning the first time:
+
+  Windows (Chrome/Edge): Click "Advanced" → "Proceed to 192.168.1.243 (unsafe)"
+
+  Windows (Firefox): Click "Advanced" → "Accept the Risk and Continue"
+
+  To avoid the warning permanently on a Windows PC, install the cert once:
+  1. Copy C:\Users\marom\personal-finance\certs\cert.pem to the other PC (USB, network share, email)
+  2. Rename it to cert.crt, double-click it
+  3. Click "Install Certificate" → "Local Machine" → "Place all certificates in the following store" → "Trusted Root Certification Authorities" →
+   Finish
+
+  After that, Chrome/Edge/Firefox will show the padlock with no warning on that PC.
+
+  ---
+  One thing to keep in mind: 192.168.1.243 is your laptop's current local IP. If your router assigns it a different IP (after a restart or
+  reconnect), the URL changes and the cert will give a hard error (not just a warning). To make it permanent, either:
+  - Set a static IP on your laptop (Network Settings → your WiFi adapter → IPv4 → Manual → set 192.168.1.243)
+  - Or I can add your laptop's hostname to the cert instead, which never changes
